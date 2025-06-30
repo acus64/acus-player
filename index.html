@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acus Studio Player</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="icons/microfono-192.png" type="image/png" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('https://c4.wallpaperflare.com/wallpaper/41/590/500/monkey-apes-artwork-headphones-sunglasses-hd-wallpaper-preview.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+    }
+
+    .main-container {
+      padding: 20px;
+      backdrop-filter: blur(5px);
+    }
+
+    .media-controls button,
+    .search-box input,
+    .search-box button {
+      margin: 5px;
+      padding: 8px 12px;
+      font-size: 16px;
+    }
+
+    .player-container {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    #video-player,
+    #audio-player {
+      width: 100%;
+      max-width: 800px;
+      display: none;
+    }
+
+    .footer-text {
+      position: fixed;
+      bottom: 8%;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      z-index: 999;
+    }
+
+    .channel {
+      cursor: pointer;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 5px 0;
+    }
+
+    .channel.active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+
+  <script>
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => console.log('ServiceWorker registrato:', reg.scope))
+          .catch(err => console.error('ServiceWorker error:', err));
+      });
+    }
+  </script>
+</head>
+<body>
+
+  <!-- LISTA CANALI: Inserisci qui i tuoi canali -->
+  <div id="channel-list">
+    <div class="channel" data-url="https://585b674743bbb.streamlock.net/9050/9050/playlist.m3u8">70-80.it TV ti ricordi?</div>
+        <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/live/S85984808/sMO0tz9Sr2Rk/playlist.m3u8">Radio Deejay Tv</div>
+        <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/webradio/deejaywfmlinus/playlist.m3u8">RADIO LINETTI</div>
+        <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/webradio/deejay80/playlist.m3u8">RADIO DEEJAY 80</div>
+        <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/radiodeejay/radiodeejay/play1.m3u8">RADIO DEEJAY</div>
+        <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/webradio/deejaytime/playlist.m3u8">RADIO DEEJAY TIME</div>
+        <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/radiocapital/radiocapital/play1.m3u8">RADIO CAPITAL</div>
+        <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/webradio/capitalclassicrock/playlist.m3u8">RADIO CAPITAL CLASSIC ROCK</div>
+        <div class="channel" data-url="https://streaming.nrjaudio.fm/ouhm27apu6pb?origine=radio.net&aw_0_1st.station=Nostalgie-Funk">ONLY FUNKY</div>
+        <div class="channel" data-url="https://uksoutha.streaming.broadcast.radio/ibiza-live-radio">IBIZA RADIO LIVE</div>
+        <div class="channel" data-url="https://stream.zeno.fm/2k1cu1qrquhvv">LOUNGE CHANNEL</div>
+        <div class="channel" data-url="https://geminione.it/proxy/test/stream">RADIO CAFE' NEW SOUL</div>
+        <div class="channel" data-url="https://strw3.openstream.co/1796">ONLY SOUND POP 80</div>
+        <div class="channel" data-url="https://stream.radioparadise.com/aac-128">RADIO PARADISE ALTERNATIVE</div>
+        <div class="channel" data-url="https://hdradioclassicrock-rfritschka.radioca.st/;">HD CLASSIC ROCK USA</div>
+        <div class="channel" data-url="http://icy.unitedradio.it/um1026.mp3">Virgin _ AC/DC</div>
+        <div class="channel" data-url="http://icy.unitedradio.it/VirginRogerWaters.mp3">Virgin _ PINK FLOYD</div>
+        <div class="channel" data-url="http://icy.unitedradio.it/VirginRock70.mp3">Virgin _ ROCK</div>
+        <div class="channel" data-url="http://icy.unitedradio.it/VirginRock70.mp3">Virgin ROCK 70</div>
+        <div class="channel" data-url="http://icy.unitedradio.it/VirginRock80.mp3">Virgin ROCK 80</div>
+        <div class="channel" data-url="http://icecast.unitedradio.it/Virgin.mp3">Virgin RADIO</div>   
+        <div class="channel" data-url="https://live02-seg.msr.cdn.mediaset.net/live/ch-ec/ec-clr.isml/index.m3u8">Radio 105</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/105Miami.mp3">Radio 105 Miami</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/105Dance90.mp3">Radio 105 Dance 90</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/105Story.mp3">Radio 105 Story</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/105Zoo.mp3">ZOO 105  *******</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/105Classics.aac">Radio 105 Classic</div>
+        <div class="channel" data-url="https://live02-seg.msr.cdn.mediaset.net/live/ch-er/er-clr.isml/index.m3u8">Radio 101</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/101Legend.aac">Radio 101 90</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/R10170.aac">Radio 101 70</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/R10180.mp3">Radio 101 80</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/R101YourLove.aac">Radio 101 Easy</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/101SpecialArtist.aac">Radio 101 New Hit</div>
+        <div class="channel" data-url="https://live02-seg.msr.cdn.mediaset.net/live/ch-bb/bb-clr.isml/index.m3u8">RMC Radio Monte Carlo</div>
+        <div class="channel" data-url="https://n35a-eu.rcs.revma.com/w66qp4pp81uvv">RMC2 PLANET Rock</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/rmcweb012">RADIO MONTE CARLO NIGHT STORY</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/rmcweb006">RADIO MONTE CARLO LOVE SONG</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/rmcweb005">RADIO MONTE CARLO ITALIA</div>
+        <div class="channel" data-url="https://n14a-eu.rcs.revma.com/ksvn8tpp81uvv?rj-ttl=5&rj-tok=AAABjzBE0AYA2paplZaa1ZJ_NA">RMC2 TIFFANY</div>
+        <div class="channel" data-url="https://n08a-eu.rcs.revma.com/7akzxppp81uvv">RMC2 DISCO INFERNO</div>
+        <div class="channel" data-url="https://streamcdnn2-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S76960628/OEPHRUIctA0M/playlist_video.m3u8">RTL 102.5 Best</div>
+        <div class="channel" data-url="https://streamcdnn1-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S75007890/MUGHuxc9dQ3b/playlist_video.m3u8">RTL 102.5 Bro & Sis</div>
+        <div class="channel" data-url="https://streamcdnn1-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S8448465/zTYa1Z5Op9ue/playlist_video.m3u8">RTL 102.5 Caliente</div>
+        <div class="channel" data-url="https://streamcdnn2-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S51100361/0Fb4R3k82b5Z/playlist_video.m3u8">RTL 102.5 Disco</div>
+        <div class="channel" data-url="https://streamcdnn2-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S38122967/2lyQRIAAGgRR/playlist_video.m3u8">RTL 102.5 Traffic</div>
+        <div class="channel" data-url="https://streamcdnn2-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S97044836/tbbP8T1ZRPBL/playlist_video.m3u8">RTL 102.5 Tv</div>
+        <div class="channel" data-url="http://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv/stitch/hls/channel/6245d15062cd1f00070a2338/master.m3u8?appName=web&appVersion=unknown&clientTime=0&deviceDNT=0&deviceId=1b1ec342-4b81-11ef-a8ac-e146e4e7be02&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&serverSideAds=false&sid=a56dace8-66e4-4b9a-a55f-d5348160dae2;">MTV MUSIC</div>
+        <div class="channel" data-url="https://naxidigital-house128ssl.streaming.rs:8002/;stream.nsv">NAXI RADIO HOUSE</div>
+        <div class="channel" data-url="https://naxidigital-70s128ssl.streaming.rs:8382/;stream.nsv">NAXI 70</div>
+        <div class="channel" data-url="https://naxidigital-80s128ssl.streaming.rs:8042/;stream.nsv">NAXI 80</div>
+        <div class="channel" data-url="https://naxidigital-rock128ssl.streaming.rs:8182/;stream.nsv">NAXI ROCK</div>
+        <div class="channel" data-url="https://naxidigital-funk128ssl.streaming.rs:8362/;stream.nsv">NAXI FUNK</div>
+        <div class="channel" data-url="https://naxidigital-disco128ssl.streaming.rs:8352/;stream.nsv">NAXI DISCO</div>
+        <div class="channel" data-url="https://naxidigital-chillwave128ssl.streaming.rs:8322/;stream.nsv">NAXI CHILLWAVE</div>
+        <div class="channel" data-url="https://naxidigital-rnb128ssl.streaming.rs:8122/;stream.nsv">NAXI RnB</div>
+        <div class="channel" data-url="https://eu-nl-012.worldcast.tv/dancetelevisiontwo/dancetelevisiontwo.m3u8">Deep House RADIO</div>
+        <div class="channel" data-url="https://stream9.xdevel.com/video0s975854-1225/stream/playlist.m3u8">1Station TV</div>
+        <div class="channel" data-url="https://stream10.xdevel.com/video0s977812-2246/stream/playlist.m3u8">001 Zortea Live Concert </div>
+        <div class="channel" data-url="https://57068da1deb21.streamlock.net/euroindiemusic/euroindiemusic/playlist.m3u8">Euro Indie Music Chart (E.I.M.C.)</div>
+        <div class="channel" data-url="https://de1se01.v2beat.live/chunks.m3u8">V2 Beat</div>
+        <div class="channel" data-url="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00056-vevotv-vevo2kau-samsungau/playlist.m3u8">Vevo 2K</div>
+        <div class="channel" data-url="https://lightning-now70s-samsungnz.amagi.tv/playlist.m3u8">Vevo 70s</div>
+        <div class="channel" data-url="https://lightning-now80s-samsungnz.amagi.tv/playlist.m3u8">Vevo 80s</div>
+        <div class="channel" data-url="https://lightning-now90s-samsungnz.amagi.tv/playlist.m3u8">Vevo 90s</div>
+        <div class="channel" data-url="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00056-vevotv-vevopopau-samsungau/playlist.m3u8">Vevo Pop</div>
+        <div class="channel" data-url="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00056-vevotv-vevoretrorockau-samsungau/playlist.m3u8">Vevo Retro Rock</div>
+        <div class="channel" data-url="https://585b674743bbb.streamlock.net/9106/9106/playlist.m3u8">RadioPlutoTV Napoli</div>
+        <div class="channel" data-url="http://stream.mediawork.cz/retrotv//retrotvHQ1/playlist.m3u8">Retro Music</div>
+        <div class="channel" data-url="https://64b16f23efbee.streamlock.net/skylinetv/skylinetv/playlist.m3u8">Skyline Radio e Soul Tv</div>
+        <div class="channel" data-url="https://rblive.it:8010/radio.mp3?refresh=1741027285515">Skyline official</div>
+        <div class="channel" data-url="https://rblive.it:8040/radio.mp3?refresh=1741027614439">Skyline Soul</div>
+        <div class="channel" data-url="https://rblive.it:8050/radio.mp3?refresh=1741027833110">Skyline Groove</div>
+        <div class="channel" data-url="https://rblive.it:8030/radio.mp3?refresh=1741028048397">Skyline Jazz</div>
+        <div class="channel" data-url="https://cdnlive.myspirit.tv/LS-ATL-43240-2/index.m3u8">Spirit Tv</div>
+        <div class="channel" data-url="https://5a1178b42cc03.streamlock.net/607080stream/607080stream/playlist.m3u8">Radio Tv 60/70/80</div>
+        <div class="channel" data-url="https://5e73cf528f404.streamlock.net/RadioWOW/livestream/playlist.m3u8">Radio Wow Tv</div>
+        <div class="channel" data-url="https://streamcdnb2-4c4b867c89244861ac216426883d1ad0.msvdn.net/live/S62628868/uhdWBlkC1AoO/chunklist_b1728000.m3u8">Radio m2o Tv</div>
+        <div class="channel" data-url="https://5f22d76e220e1.streamlock.net/radioricorditv/radioricorditv/playlist.m3u8">Radio Ricordi Tv</div>
+        <div class="channel" data-url="https://5f204aff97bee.streamlock.net/Ritmo80TV/livestream/chunklist_w1976860884.m3u8">Radio Ritmo 80  Tv (Forever Young)</div>
+        <div class="channel" data-url="https://stream10.xdevel.com/video0s977363-1901/stream/playlist.m3u8"> Romantica Radio Tv</div>
+        <div class="channel" data-url="https://stream1.xdevel.com/video0s975496-379/stream/playlist.m3u8">Radio Saba Sound Tv</div>
+        <div class="channel" data-url="https://stream3.aswifi.it/radiosilver/live/index.m3u8">Radio Silver</div>
+        <div class="channel" data-url="https://604e46ac2bdee.streamlock.net:1936/rete8_1/rete8_1/playlist.m3u8">Radio Italia Anni 60</div>
+        <div class="channel" data-url="https://58d921499d3d3.streamlock.net/RadioPiterpanTV/livestream/playlist.m3u8">PiterPan TV</div>
+        <div class="channel" data-url="https://w1.mediastreaming.it/movidatv/movidatv/chunklist_w621208970.m3u8">Radio Movida Tv - house</div>
+        <div class="channel" data-url="https://585b674743bbb.streamlock.net/9076/9076/playlist.m3u8">Radio 80 Forever Young</div>
+        <div class="channel" data-url="https://radioitaliatv.akamaized.net/hls/live/2093117/RadioitaliaTV/stream03/streamPlaylist.m3u8">Radio Italia Tv</div>
+        <div class="channel" data-url="https://5926fc9c7c5b2.streamlock.net/9108/9108/playlist.m3u8">Radio JukeBox Tv</div>
+        <div class="channel" data-url="https://lightning-now70s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now70s-rakuten/CDN/playlist.m3u8?ads_amagi_channel=869&ads_amznbrmid=&ads_amznregion=&ads_amznslots=&ads_app_bundle=com.rakuten.tv&ads_app_store_url=rakuten.tv&ads_app_version=&ads_brand_name=&ads_content_classification=0&ads_device_lmt=1&ads_device_make=&ads_device_model=&ads_device_type=web&ads_device_year=&ads_env=prod&ads_gam_correlator=&ads_gdpr_consent=&ads_market=it&ads_os_language=&ads_player_height=&ads_player_width=&ads_pod_type=playerpage_midroll&ads_ppid=&ads_rtv_content_id=5289&ads_rtv_content_language=eng&ads_rtvid=271861&ads_streaming_id=50cf98dd-196a-40f7-a4ea-d8d3cc4c260f&ads_tivo_devcountry=&ads_tivo_devmakedate=&ads_tivo_mvpd=&ads_tivo_platform=&ads_tivo_usid=&ads_tivo_uxloc=&ads_user_type=visitor">NOW 70s</div>
+        <div class="channel" data-url="https://lightning-now80s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now80s-rakuten/CDN/playlist.m3u8?ads_amagi_channel=871&ads_amznbrmid=&ads_amznregion=&ads_amznslots=&ads_app_bundle=com.rakuten.tv&ads_app_store_url=rakuten.tv&ads_app_version=&ads_brand_name=&ads_content_classification=0&ads_device_lmt=1&ads_device_make=&ads_device_model=&ads_device_type=web&ads_device_year=&ads_env=prod&ads_gam_correlator=&ads_gdpr_consent=&ads_market=it&ads_os_language=&ads_player_height=&ads_player_width=&ads_pod_type=playerpage_midroll&ads_ppid=&ads_rtv_content_id=5320&ads_rtv_content_language=eng&ads_rtvid=271861&ads_streaming_id=a4ec0673-54e4-4008-9191-2d6821e5baaa&ads_tivo_devcountry=&ads_tivo_devmakedate=&ads_tivo_mvpd=&ads_tivo_platform=&ads_tivo_usid=&ads_tivo_uxloc=&ads_user_type=visitor">NOW 80s</div>
+        <div class="channel" data-url="https://lightning-now90s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now90s-rakuten/CDN/playlist.m3u8?ads_amagi_channel=870&ads_amznbrmid=&ads_amznregion=&ads_amznslots=&ads_app_bundle=com.rakuten.tv&ads_app_store_url=rakuten.tv&ads_app_version=&ads_brand_name=&ads_content_classification=0&ads_device_lmt=1&ads_device_make=&ads_device_model=&ads_device_type=web&ads_device_year=&ads_env=prod&ads_gam_correlator=&ads_gdpr_consent=&ads_market=it&ads_os_language=&ads_player_height=&ads_player_width=&ads_pod_type=playerpage_midroll&ads_ppid=&ads_rtv_content_id=5357&ads_rtv_content_language=eng&ads_rtvid=271861&ads_streaming_id=4da90836-29e4-460d-b0f8-7299b05f1e26&ads_tivo_devcountry=&ads_tivo_devmakedate=&ads_tivo_mvpd=&ads_tivo_platform=&ads_tivo_usid=&ads_tivo_uxloc=&ads_user_type=visitor">NOW Rock</div>
+        <div class="channel" data-url="https://59253971be783.streamlock.net/KKTV01/livestream/playlist.m3u8">Radio Kiss Kiss Italia Tv</div>
+        <div class="channel" data-url="https://cp1.server89.com:19360/studiocentrale/studiocentrale.m3u8">R.S.C. Tv (Radio Studio Centrale)</div>
+        <div class="channel" data-url="https://kk.fluid.stream/KKMulti/smil:KissKissTV.smil/playlist.m3u8">Radio Kiss Kiss Tv</div>
+        <div class="channel" data-url="https://tvd-love.fluid.stream/LoveFM/livestream/chunklist_w45593526.m3u8">Radio Love FM</div>
+        <div class="channel" data-url="https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/playlist_video.m3u8">Radio Freccia Tv</div>
+        <div class="channel" data-url="https://5e73cf528f404.streamlock.net/RTR99TV/livestream/chunklist_w2019426144.m3u8">RTR99</div>
+        <div class="channel" data-url="https://5929b138b139d.streamlock.net/RadioIbizaTV/livestream/chunklist_w1961450240.m3u8">Radio Ibiza Tv</div>
+        <div class="channel" data-url="https://5db313b643fd8.streamlock.net/RMC101TV/RMC101TV/playlist.m3u8">RMC 101 Tv</div>
+        <div class="channel" data-url="https://5926fc9c7c5b2.streamlock.net/9326/9326/playlist.m3u8">Miami Vice Radio Tv</div>
+        <div class="channel" data-url="https://streamcdnm8-f5842579ff984c1c98d63b8d789673eb.msvdn.net/live/324215/zPnHWY2/playlist.m3u8">LaC On-Air</div>
+        <div class="channel" data-url="https://64b16f23efbee.streamlock.net/mitologytv/mitologytv/playlist.m3u8">Mitology TV</div>
+        <div class="channel" data-url="https://rst.saiuzwebnetwork.it:8081/radioldr/index.m3u8">LDR Radio Tv Lounge</div>
+        <div class="channel" data-url="https://d39g1vxj2ef6in.cloudfront.net/v1/master/3fec3e5cac39a52b2132f9c66c83dae043dc17d4/prod-rakuten-stitched/master.m3u8?ads._fw_app_bundle=com.rakuten.tv&ads._fw_app_store_url=rakuten.tv&ads._fw_content_category=IAB1-6&ads._fw_content_genre=music&ads._fw_content_language=en&ads._fw_content_rating=tv-g&ads._fw_deviceMake=&ads._fw_device_model=&ads._fw_devicetype=3-connected_tv&ads._fw_gdpr=1&ads._fw_gdpr_consent=&ads._fw_is_lat=1&ads.amznbrmid=&ads.amznregion=&ads.amznslots=&ads.appName=RakutenTV&ads.app_version=&ads.brand_name=&ads.caid=StingrayGreatestHits&ads.csid=zeus_eu_stingraygreatesthits_ssai&ads.gam_correlator=&ads.os_language=&ads.rakuten_content_type=live_channels&ads.rakuten_device_type=web&ads.rakuten_device_year=&ads.rakuten_env=prod&ads.rakuten_market=it&ads.rakuten_pod_type=playerpage_midroll&ads.rakuten_rtv_content_id=2191&ads.rakuten_streaming_id=d0d0a180-1e34-4306-94f5-efe40b029ae2&ads.rakuten_user_type=visitor&ads.tivo_devcountry=&ads.tivo_devmakedate=&ads.tivo_mvpd=&ads.tivo_platform=&ads.tivo_usid=&ads.tivo_uxloc=&ads.xumo_channelId=88883053&ads.xumo_contentId=1857&ads.xumo_contentName=StingrayGreatestHits&ads.xumo_ifa=&ads.xumo_ifaType=ppid&ads.xumo_providerId=1857&ads.xumo_providerName=StingrayGreatestHits&ads.xumo_streamId=88883053">Stingray Greatest Hits</div>
+        <div class="channel" data-url="https://d39g1vxj2ef6in.cloudfront.net/v1/master/3fec3e5cac39a52b2132f9c66c83dae043dc17d4/prod-rakuten-stitched/master.m3u8?ads._fw_app_bundle=com.rakuten.tv&ads._fw_app_store_url=rakuten.tv&ads._fw_content_category=IAB1-6&ads._fw_content_genre=music&ads._fw_content_language=en&ads._fw_content_rating=tv-g&ads._fw_deviceMake=&ads._fw_device_model=&ads._fw_devicetype=3-connected_tv&ads._fw_gdpr=1&ads._fw_gdpr_consent=&ads._fw_is_lat=1&ads.amznbrmid=&ads.amznregion=&ads.amznslots=&ads.appName=RakutenTV&ads.app_version=&ads.brand_name=&ads.caid=StingrayHitlist&ads.csid=zeus_eu_stingrayhitlist_ssai&ads.gam_correlator=&ads.os_language=&ads.rakuten_content_type=live_channels&ads.rakuten_device_type=web&ads.rakuten_device_year=&ads.rakuten_env=prod&ads.rakuten_market=it&ads.rakuten_pod_type=playerpage_midroll&ads.rakuten_rtv_content_id=2083&ads.rakuten_streaming_id=77755756-a9c1-420e-96a8-e15b49a362d7&ads.rakuten_user_type=visitor&ads.tivo_devcountry=&ads.tivo_devmakedate=&ads.tivo_mvpd=&ads.tivo_platform=&ads.tivo_usid=&ads.tivo_uxloc=&ads.xumo_channelId=88883054&ads.xumo_contentId=1858&ads.xumo_contentName=StingrayHitlist&ads.xumo_ifa=&ads.xumo_ifaType=ppid&ads.xumo_providerId=1858&ads.xumo_providerName=StingrayHitlist&ads.xumo_streamId=88883054">Stingray: Hitlist</div>
+        <div class="channel" data-url="https://d39g1vxj2ef6in.cloudfront.net/v1/master/3fec3e5cac39a52b2132f9c66c83dae043dc17d4/prod-rakuten-stitched/master.m3u8?ads._fw_app_bundle=com.rakuten.tv&ads._fw_app_store_url=rakuten.tv&ads._fw_content_category=IAB1-6&ads._fw_content_genre=music&ads._fw_content_language=en&ads._fw_content_rating=tv-g&ads._fw_deviceMake=&ads._fw_device_model=&ads._fw_devicetype=3-connected_tv&ads._fw_gdpr=1&ads._fw_gdpr_consent=&ads._fw_is_lat=1&ads.amznbrmid=&ads.amznregion=&ads.amznslots=&ads.appName=RakutenTV&ads.app_version=&ads.brand_name=&ads.caid=RememberThe80sUK&ads.csid=zeus_uk_stingrayrememberthe80s_ssai&ads.gam_correlator=&ads.os_language=&ads.rakuten_content_type=live_channels&ads.rakuten_device_type=web&ads.rakuten_device_year=&ads.rakuten_env=prod&ads.rakuten_market=it&ads.rakuten_pod_type=playerpage_midroll&ads.rakuten_rtv_content_id=4886&ads.rakuten_streaming_id=0d4f363f-cdcc-4da0-8647-8552c663a311&ads.rakuten_user_type=visitor&ads.tivo_devcountry=&ads.tivo_devmakedate=&ads.tivo_mvpd=&ads.tivo_platform=&ads.tivo_usid=&ads.tivo_uxloc=&ads.xumo_channelId=88883071&ads.xumo_contentId=2184&ads.xumo_contentName=StingrayEverything80s&ads.xumo_ifa=&ads.xumo_ifaType=ppid&ads.xumo_providerId=2184&ads.xumo_providerName=StingrayEverything80s&ads.xumo_streamId=88883071">Stingray: Remember the 80’s</div>
+        <div class="channel" data-url="https://jmp2.uk/plu-6552085aab05240008b05f6c.m3u8"> VH1+ Back to 90's</div>
+        <div class="channel" data-url="https://jmp2.uk/plu-63724270c7c2360007b170e8.m3u8"> VH1+ Canzoni Italiane</div>
+        <div class="channel" data-url="https://jmp2.uk/plu-6690f892d51259000880d1c4.m3u8"> VH1+ Classici</div>
+        <div class="channel" data-url="https://jmp2.uk/plu-65e5d9d2ec9fda0008c35f91.m3u8"> VH1+ Dance</div>
+        <div class="channel" data-url="https://jmp2.uk/plu-62e8cc10ca869f00078efca8.m3u8"> VH1+ Music Legends</div>
+        <div class="channel" data-url="https://jmp2.uk/plu-636a4173e34fd50007534542.m3u8"> VH1+ Rock!</div>
+        <div class="channel" data-url="https://jmp2.uk/sam-ITBC1100011RK.m3u8"> Rock TV</div>
+        <div class="channel" data-url="https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01076-lightningintern-traceurban-xiaomi/playlist.m3u8"> Music Trance Urban</div>
+        <div class="channel" data-url="https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01131-tracetv-tracebrazuca-xiaomi/playlist.m3u8"> Music Trance Brazil</div>
+        <div class="channel" data-url="https://jmp2.uk/sam-USBB2300004KV.m3u8"> XITE Rock & Metal</div>
+        <div class="channel" data-url="https://jmp2.uk/sam-USBD330000948.m3u8"> XITE R&B</div>
+        <div class="channel" data-url="https://iheart-iheart80s-1-us.roku.wurl.tv/playlist.m3u8"> IHeart 80s</div>
+        <div class="channel" data-url="https://stream.nasatv.com.mk/jazztv/hls/jazztv_live.m3u8"> Jazz TV</div>
+        <div class="channel" data-url="https://muzzik-live.morescreens.com/mts-8/playlist.m3u8"> Muzzik	80 ricordi</div>
+        <div class="channel" data-url="https://muzzik-live.morescreens.com/mts-a5/playlist.m3u8"> Muzzik Pop</div>
+        <div class="channel" data-url="https://cdn-ue1-prod.tsv2.amagi.tv/linear/qwestAAAA-qwestjazz-uk-samsungtv/playlist.m3u8"> Qwest TV Jazz</div>
+        <div class="channel" data-url="https://stream.rtl.lu/data/live/tele/rtlgold/playlist.m3u8"> RTL Gold</div>
+        <div class="channel" data-url="http://stream.zeno.fm/bpn1hy0h6ehvv"> Radio Blue</div>
+        <div class="channel" data-url="https://m2b2.worldcast.tv:7443/dancetelevisionthree/dancetelevisionthree.m3u8"> Techno Warehouse</div>
+        <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/radiom2odance/radiom2odance/master_ma.m3u8">M2O</div>
+        <div class="channel" data-url="https://cdn0-47115-liveicecast0.dna.contentdelivery.net/jazz_mp3_h">JAZZ RADIO</div>
+        <div class="channel" data-url="http://jazz-wr06.ice.infomaniak.ch/jazz-wr06-128.mp3">JAZZ RADIO FUNK</div>
+        <div class="channel" data-url="http://jazzlounge.ice.infomaniak.ch/jazzlounge-high.mp3">RJAZZ RADIO LOUNGE</div>
+        <div class="channel" data-url="http://jazzlounge.ice.infomaniak.ch/jazzlounge-high.mp3">JAZZ RADIO LOUNGE</div>
+        <div class="channel" data-url="http://jazz-wr10.ice.infomaniak.ch/jazz-wr10-128.mp3">JAZZ RADIO SOUL</div>
+        <div class="channel" data-url="http://jazz-wr17.ice.infomaniak.ch/jazz-wr17-128.mp3">JAZZ RADIO - Jazz & Classique</div>
+        <div class="channel" data-url="http://jazzladiescrooners.ice.infomaniak.ch/jazzladiescrooners-high.mp3">JAZZ RADIO LADIES</div>
+        <div class="channel" data-url="http://jazzblackmusic.ice.infomaniak.ch/jazzblackmusic-high.mp3">JAZZ RADIO BLACK MUSIC</div>
+        <div class="channel" data-url="http://jazz-wr08.ice.infomaniak.ch/jazz-wr08-128.mp3">JAZZ RADIO GROOVE</div>
+        <div class="channel" data-url="http://jazz-wr06.ice.infomaniak.ch/jazz-wr06-128.mp3">JAZZ RADIO FUNK</div>
+        <div class="channel" data-url="https://node-20.zeno.fm/ft80agnb5qzuv">COOL JAZZ</div>
+        <div class="channel" data-url="https://streaming.nrjaudio.fm/ouo6uw7nfibk?origine=radio.net&aw_0_1st.station=Nostalgie-Jazz">JAZZ RADIO</div>
+        <div class="channel" data-url="http://jzr-wr20.ice.infomaniak.ch/jzr-wr20.mp3">JAZZ RADIO Jazz & Cinema</div>
+        <div class="channel" data-url="http://icecast.centaury.cl:7550/SuperStereo5">SUPERSTEREO ROCK BALLADS</div>
+        <div class="channel" data-url="http://icecast.centaury.cl:7550/SuperStereo3">SUPERSTEREO HI RES 80</div>
+        <div class="channel" data-url="https://streaming.radiostreamlive.com/radiolovelive_devices">RADIO LIVE NY</div>
+        <div class="channel" data-url="http://18703.live.streamtheworld.com/SP_R2591867_SC">PINGUIN GROOVE</div>
+        <div class="channel" data-url="https://14223.live.streamtheworld.com/SP_R4017895_SC">PINGUIN VINTAGE 80</div>
+        <div class="channel" data-url="https://c23.radioboss.fm:8129/stream">RADIO BOSS</div>
+        <div class="channel" data-url="https://audio.opensky.radio:8082/flac?_res_tag_=audio">OPEN SKY</div>
+        <div class="channel" data-url="https://mscp4.live-streams.nl:8142/lounge.ogg">LIVE STREAMS _ 70 FUNKY DISCO</div>
+        <div class="channel" data-url="http://listen-nation.sharp-stream.com/nationhitsdab.mp3?ref=RF">SHARP STREAM DANCE</div>
+        <div class="channel" data-url="https://streaming.hotmixradio.fr/hotmix-lounge-en-mp3">HOTMIX LOUNGE</div>
+        <div class="channel" data-url="https://radiosputnik.nl:8443/flac">RADIO SPUTNIK _ HOUSE</div>
+        <div class="channel" data-url="https://s2.radio.co/s30844a0f4/listen">EDM HOUSE LAS VEGAS</div>
+        <div class="channel" data-url="https://streams.radio.co/sdc9cfaf77/listen">IBIZA HOUSE</div>
+        <div class="channel" data-url="https://s35.derstream.net/lounge.mp3?_=1">Maretimo Lounge</div>
+        <div class="channel" data-url="https://s35.derstream.net/100austria.mp3">LOUNGE FM _ AUSTRIA</div>
+        <div class="channel" data-url="http://0n-newwave.radionetz.de/0n-newwave.mp3">New WAVE _ 80</div>
+        <div class="channel" data-url="https://0n-newwave.radionetz.de/0n-indie.mp3">INDIE</div>
+        <div class="channel" data-url="https://0n-jukebox.radionetz.de/0n-jukebox.mp3">JUKEBOX</div>
+        <div class="channel" data-url="https://0n-jazz.radionetz.de/0n-jazz.mp3">JAZZ</div>
+        <div class="channel" data-url="https://icecast.walmradio.com:8443/classic">CLASSIC VINYL JAZZ</div>
+        <div class="channel" data-url="https://0n-love.radionetz.de/0n-love.mp3">SOFT ROCK</div>
+        <div class="channel" data-url="https://0n-classicrock.radionetz.de/0n-classicrock.mp3">CLASSIC ROCK</div>
+        <div class="channel" data-url="https://radio4.vip-radios.fm:18057/stream-128kmp3-SoulfulHouse">Radio 4 VIP _ LOUNGE</div>
+        <div class="channel" data-url="https://ais-sa2.cdnstream1.com/2382_128.mp3">LITE RADIO _ 70 80</div>
+        <div class="channel" data-url="https://icy.unitedradio.it/um036.mp3">UMSH _ HOUSE</div>
+        <div class="channel" data-url="https://stream.vanillaradio.com:8012/live">VANILLA RADIO DEEP HOUSE</div>
+        <div class="channel" data-url="https://pointblankradio.co.uk/stream?latency=high">Point Blank FM _ HOUSE</div>
+        <div class="channel" data-url="http://stream.electroradio.fm/stream.mp3">Electro Radio _Techno</div>
+        <div class="channel" data-url="https://gestream.fr/g-radio-hd.mp3">Generation Disco _ Funk</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er/donnasummer/icecast.audio">Exclusive Legends</div>
+        <div class="channel" data-url="https://stream6.xdevel.com/audio6s975889-649/stream/icecast.audio">Radio News24</div>
+        <div class="channel" data-url="https://nr11.newradio.it:19208/stream?ext=.mp3">Anni 80</div>
+        <div class="channel" data-url="https://italianradio.streamingmedia.it/play">Italia Radio</div>
+        <div class="channel" data-url="https://xr.dockl.com/stream">100xr NY</div>
+        <div class="channel" data-url="http://das-edge15-live365-dal02.cdnstream.com/a73319">Village Radio Hilton</div>
+        <div class="channel" data-url="http://live.powerhitz.com/70s?aw_0_req.gdpr=true">POWERHIT NY ROCK</div>
+        <div class="channel" data-url="https://stream-154.zeno.fm/cpnv07rjvp0vv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJjcG52MDdyanZwMHZ2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6IklxZE1DX1RBUmFHbGpQQmYzVzdhQ1EiLCJpYXQiOjE3MzY1Mzc2MDEsImV4cCI6MTczNjUzNzY2MX0.txxKDAGrP-HGs8c8bbNXdd1mE1FGiVJlIEtiwdqgGgs">WERAVE HOUSE RADIO</div>
+        <div class="channel" data-url="https://funkyradio.streamingmedia.it/audio.aac">FUNKY RADIO NY</div>
+        <div class="channel" data-url="https://discofunk.streamingmedia.it/usa">DISCO FUNKY</div>
+        <div class="channel" data-url="https://stream-156.zeno.fm/2k1cu1qrquhvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIyazFjdTFxcnF1aHZ2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6IldrcDhRS1pRUmVlc3B4MWRoWERFNlEiLCJpYXQiOjE3MzUxNTE1OTMsImV4cCI6MTczNTE1MTY1M30.Jm-8BLIkagge1arp_S-Yk3ImDlfWM63XqucL7BVvSh0.6yEfSbfuBo9uhpvoBPLKBk0">The Lounge Channel</div>
+        <div class="channel" data-url="http://patbuweb.com/iptv/e2liste/startend.avi">=== Canali RAI ===</div>
+        <div class="channel" data-url="https://dash2.antik.sk/live/test_rai_uno_tizen/playlist.m3u8">Rai 1</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=308718&output=7&forceUserAgent=raiplayappletv">Rai 2</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=308709&output=7&forceUserAgent=raiplayappletv">Rai 3</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746966&output=7&forceUserAgent=raiplayappletv">Rai 4</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=395276&output=7&forceUserAgent=raiplayappletv">Rai 5</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746953&output=7&forceUserAgent=raiplayappletv">Rai Gulp</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=747002&output=7&forceUserAgent=raiplayappletv">Rai Movie</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=5674080&output=7">Rai Radio 2</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=747011&output=7&forceUserAgent=raiplayappletv">Rai Scuola</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746990&output=7&forceUserAgent=raiplayappletv">Rai Storia</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746899&output=7&forceUserAgent=raiplayappletv">Rai Yoyo</div>
+        <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=746992&output=7&forceUserAgent=raiplayappletv">Rai Premium</div>
+        <div class="channel" data-url="https://amg16146-wbdi-amg16146c1-samsung-it-1831.playouts.now.amagi.tv/playlist/amg16146-warnerbrosdiscoveryitalia-nove-samsungit/playlist.m3u8">NOVE 9</div>
+        <div class="channel" data-url="http://patbuweb.com/iptv/e2liste/startend.avi">=== Canali Mediaset ===</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-c5/c5-clr.isml/index.m3u8">Canale 5</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-i1/i1-clr.isml/index.m3u8">Italia 1</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-r4/r4-clr.isml/index.m3u8">Rete 4</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-ts/ts-clr.isml/index.m3u8">27 Twentyseven</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-b6/b6-clr.isml/index.m3u8">Cine 34</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-fu/fu-clr.isml/index.m3u8">Focus</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-kq/kq-clr.isml/index.m3u8">GRANDE FRATELLO</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-ki/ki-clr.isml/index.m3u8">Iris</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-i2/i2-clr.isml/index.m3u8">Italia 2</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-ka/ka-clr.isml/index.m3u8">La 5</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-lb/lb-clr.isml/index.m3u8">Mediaset 20</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-kq/kq-clr.isml/index.m3u8">Mediaset Extra</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-lt/lt-clr.isml/index.m3u8">Top Crime</div>
+        <div class="channel" data-url="https://jmp2.uk/sam-ITBD4400001X5.m3u8">DMAX</div>
+        <div class="channel" data-url="https://jmp2.uk/sam-ITBD1500002NL.m3u8">LA 7</div>
+        <div class="channel" data-url="https://jmp2.uk/sam-IT3200006YF.m3u8">RISATE DAL SUD</div>
+        <div class="channel" data-url="http://patbuweb.com/iptv/e2liste/startend.avi">=== News e SPORT ===</div>
+        <div class="channel" data-url="https://5e73cf528f404.streamlock.net/GR_sport/livestream/playlist.m3u8">TG ADN Kronos</div>
+        <div class="channel" data-url="https://streamcdnb4-8e7439fdb1694c8da3a0fd63e4dda518.msvdn.net/rainews1/hls/rainews_2400/chunklist.m3u8">TG Rai News 24</div>
+        <div class="channel" data-url="https://odmsto.com/returned/668707.m3u8">TGR Sicilia</div>
+        <div class="channel" data-url="https://live02-seg.msf.cdn.mediaset.net/live/ch-kf/kf-clr.isml/index.m3u8">Tgcom24</div>
+        <div class="channel" data-url="https://sportsitalia-samsungitaly.amagi.tv/playlist.m3u8">SportItalia</div>
+        <div class="channel" data-url="https://live-embed.supertennix.hiway.media/restreamer/supertennix_client/gpu-a-c0-16/restreamer/outgest/h24_supertennix/manifest.m3u8">SuperTennis</div>
+        <div class="channel" data-url="https://amg01444-tennischannelth-tennischannelnl-samsungnl-x3dq1.amagi.tv/playlist/amg01444-tennischannelth-tennischannelnl-samsungnl/cb56341c6573658c84cb3678d4f362c0a65928d80b6c852a6ab454876da64607d1e3b680fd358b785d9f01de6a1a0a080361cf12ce3407c3d56aea173e7d14708498ab6baecc4152edc70d2a2bb37a1f51ff1e6389670674d6f15559d669fb294757ba593f0034ddeb0ab02254c386178a7e7cddb08c323b744709990e0fb3a10ca5fab75a4cbad4908b38701c9aded6a273e3e66ece92e329cb1fd12fb449bfb3cab9a675a21a45ae9b7d84111c4a2d6d9cfa16fb4bc47cbbe8011b8e643b551b59f5e1ef96cda54c26313fdacdfec515dd01db9a36846c24fb23995f8d248b67e06fcd851ff9feeb8d0429b1c3b58c633819b8b1a3db4c3add691ac68caf5336f6d3016a48d9689700392d83eece1897f9e5f7dc13a8bb731434cc900aced3e2c3a7878444982addd4b4b609021f334a52dd1d9593638d7d8638b098477a1c5f52f7cb0690c8891770454a858b519b414be88bdbd28f5f7bec69095fee6fc114543f987a3c0e904793ad35628d291d96756cab2a52ae76bce97cbbf7a1a06c5c98d1dd4bf363eecf7bf4ff10ac6b334142feb21b564b4872c7fd246a147cd04ef0dcdaeb155d52f4962d9f16c2ebdb5f4feaec32464a6aebea2425cdc29fb7d4/42/1920x1080_4716800/index.m3u8"> TENNIS</div>
+        <div class="channel" data-url="https://hlslive-web-gcdn-skycdn-it.akamaized.net/TACT/12221/web/master.m3u8?hdnts=st=1701861650~exp=1765449000~acl=/*~hmac=84c9f3f71e57b13c3a67afa8b29a8591ea9ed84bf786524399545d94be1ec04d">Sky Tg 24</div>
+        <div class="channel" data-url="">---- MY LIST STREAMING----</div>
+        <div class="channel" data-url="https://rr2---sn-45nufxc-2hvs.googlevideo.com/videoplayback?expire=1747874039&ei=lxwuaIj5K9jJi9oPoeTZ2AY&ip=93.35.133.144&id=o-AEP8n0Ebrwg2aoB0P-G5t8dSLjUlnf7TbwP16spqN-HG&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1747852439%2C&mh=FX&mm=31%2C29&mn=sn-45nufxc-2hvs%2Csn-hpa7zn6z&ms=au%2Crdu&mv=m&mvi=2&pcm2cms=yes&pl=22&rms=au%2Cau&gcr=it&initcwndbps=1163750&bui=AecWEAYvn7WKjcoEU621ADLj1K5ARRRtMMBdBYIaM2txtMTpVbHa7D4jn2-4tmjgwOVmR_X4darNwgql&vprv=1&svpuc=1&mime=video%2Fmp4&ns=4JIFFVEaAAICkNWl9EE1OGMQ&rqh=1&gir=yes&clen=82621869&ratebypass=yes&dur=1288.521&lmt=1725642099426613&mt=1747851662&fvip=5&lmw=1&fexp=51466698&c=TVHTML5&sefc=1&txp=7309224&n=6ltoYZk6aXX-0g&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cgcr%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpcm2cms%2Cpl%2Crms%2Cinitcwndbps&lsig=ACuhMU0wRgIhAOH6ejRH4sqCCPHcz-YBgbmfgFRhqbjmvXUJsgP_4cjhAiEAtklQimlnWv7P-iDNZy9NP2M_O37IaBYD5qih1F2Axbc%3D&sig=AJfQdSswRQIgYmS3Y8G8_-TC-NwAuCO708zCpaKcWzTjyzPp8SkFS6ICIQDjbs9yWKtEA01uvm7cNm8LcWsmAbTI3nyFNeVjz_hn0Q%3D%3D">DAVID GILMORE</div>
+        <div class="channel" data-url="https://podcast-radio24.ilsole24ore.com/radio24_audio/2025/250528-lazanzara.mp3?awCollectionId=lazanzara&awEpisodeId=250528-lazanzara">LA ZANZARA</div>
+        <div class="channel" data-url=""></div>
+        <div class="channel" data-url=""></div>
+        <div class="channel" data-url=""></div>
+        <div class="channel" data-url=""></div>
+        <div class="channel" data-url=""></div>
+        <div class="channel" data-url=""></div>
+    <!-- Aggiungi altri <div class="channel" data-url="...">Nome Canale</div> -->
+  </div>
+
+  <div class="main-container">
+    <div class="controls-container">
+      <div class="media-controls">
+        <button id="voice-search" class="voice-search-button">🎤</button>
+        <button id="media-play">Play</button>
+        <button id="media-stop">Stop</button>
+      </div>
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Cerca un canale..." />
+        <button id="reset-search">Canc</button>
+      </div>
+    </div>
+    <div class="player-container">
+      <video id="video-player" controls></video>
+      <audio id="audio-player" controls></audio>
+    </div>
+  </div>
+
+  <div class="footer-text">
+    Acus Studio 2025 - Riproduzione vietata - © All rights reserved.
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
