@@ -3,91 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acus Studio PWA</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
-  <link rel="icon" href="icons/microfono-192.png" type="image/png">
-
+  <title>Video Streaming Player</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     body {
-      margin: 0;
-      background: url('https://c4.wallpaperflare.com/wallpaper/41/590/500/monkey-apes-artwork-headphones-sunglasses-hd-wallpaper-preview.jpg') no-repeat center center fixed;
-      background-size: cover;
       font-family: Arial, sans-serif;
-      color: white;
+      background: url('https://c4.wallpaperflare.com/wallpaper/41/590/500/monkey-apes-artwork-headphones-sunglasses-hd-wallpaper-preview.jpg') no-repeat;
+      background-position: 80% center;
+      background-size: cover;
+      background-color: #03093a;
+      margin: 0;
+      padding: 0;
+      display: flex;
       height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    .content {
-      flex: 1;
-      display: flex;
       overflow: hidden;
     }
-    #channel-list {
-      width: 200px;
+    .channel-container {
+      width: 180px;
+      font-family: 'Verdana', sans-serif;
+      background-color: #1b0000;
+      color: #c0c0c0;
       overflow-y: auto;
-      background: rgba(0,0,0,0.5);
+      height: 100%;
+      padding: 10px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
     }
     .channel {
       padding: 10px;
+      border-bottom: 1px solid #ddd;
       cursor: pointer;
-      border-bottom: 1px solid #444;
+      color: white;
+      margin-bottom: 10px; /* Aumenta il margine inferiore di tutti i canali */
     }
-    .channel.active { background: #666; }
+    .channel:hover {
+      background-color: #5f0e0e;
+    }
+    .channel.active {
+      background-color: red;
+    }
     .main-container {
       flex: 1;
-      padding: 10px;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 10px;
     }
     .controls-container {
-      display: flex;
-      align-items: center;
-    }
-    .media-controls button, .search-box button {
-      margin-right: 8px;
-    }
-    .search-box {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-    }
-    .player-container {
-      flex: 1;
+      width: 100%;
+      max-width: 800px;
       display: flex;
       justify-content: center;
+      margin-bottom: 10px;
+      margin-top: 20px;
       align-items: center;
     }
-    video, audio {
-      max-width: 100%;
-      max-height: 100%;
+    .search-box {
+      width: 45%;
+      display: flex;
+      align-items: center;
+      background-color: rgba(255, 0, 0, 0.644); /* Colore arancio per il box di ricerca */
+      padding: 2px;
+      border-radius: 5px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+      border: 1px solid #01110a;
+      background-color: rgb(15, 15, 15); /* Colore arancio per l'interno del box di ricerca */
+      color: #ffffff; /* Font in bianco */
+    }
+    .reset-search-button {
+      background-color: #ddd;
+      border: none;
+      color: #333;
+      padding: 5px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-left: 5px;
+    }
+    .reset-search-button:hover {
+      background-color: #ccc;
+    }
+    .voice-search-button {
+      background-color: #ddd;
+      border: none;
+      color: #333;
+      padding: 5px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-left: 5px;
+    }
+    .voice-search-button:hover {
+      background-color: #ccc;
+    }
+    .player-container {
+      width: 100%;
+      max-width: 600px;
+      background: none;
+      margin-bottom: 10px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    #video-player {
+      width: 100%;
+      height: auto;
+      background: #000;
       display: none;
     }
-    .footer-text {
+    #audio-player {
+      width: 100%;
+      height: 8px; /* Altezza ridotta del player audio */
+      display: none;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+    }
+    .media-controls {
+      display: flex;
+      justify-content: flex-start;
+      gap: 20px; /* Distanzia i pulsanti tra loro */
+      margin-right: 10px;
+    }
+    .media-controls button {
+      background-color: #1b0000;
+      color: #c0c0c0;
+      border: 1px solid white;
       padding: 10px;
-      text-align: center;
-      background: rgba(0,0,0,0.3);
+      margin: 0 5px;
+      cursor: pointer;
+      transform: scale(1.15); /* Aumenta del 5% i pulsanti */
+    }
+    .media-controls button:hover {
+      background-color: #5f0e0e;
+    }
+    @media (max-width: 768px) {
+      .channel-container {
+        width: 160px;
+      }
+      .search-box {
+        width: 85%;
+        max-width: 280px;
+      }
+      .player-container {
+        width: 85%;
+        max-width: 280px;
+      }
+      #video-player {
+        height: 180px;
+      }
+      #audio-player {
+        height: 8px; /* Altezza ridotta del player audio per dispositivi mobili */
+      }
+    }
+    .small-player {
+      width: 200px;
+      height: 30px; /* Altezza ridotta del player video dell'80% */
     }
   </style>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-          .then(r => console.log('ServiceWorker registrato'))
-          .catch(e => console.error('SW error', e));
-      });
-    }
-  </script>
 </head>
 <body>
-  <div class="content">
-    <div id="channel-list">
-      <!-- Inserisci qui i tuoi canali -->
-      <div class="channel" data-url="https://585b674743bbb.streamlock.net/9050/9050/playlist.m3u8">70-80.it TV ti ricordi?</div>
+  <div class="channel-container" id="channel-list">
+        <div class="channel" data-url="https://585b674743bbb.streamlock.net/9050/9050/playlist.m3u8">70-80.it TV ti ricordi?</div>
         <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/live/S85984808/sMO0tz9Sr2Rk/playlist.m3u8">Radio Deejay Tv</div>
         <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/webradio/deejaywfmlinus/playlist.m3u8">RADIO LINETTI</div>
         <div class="channel" data-url="https://4c4b867c89244861ac216426883d1ad0.msvdn.net/webradio/deejay80/playlist.m3u8">RADIO DEEJAY 80</div>
@@ -266,6 +346,84 @@
         <div class="channel" data-url="https://funkyradio.streamingmedia.it/audio.aac">FUNKY RADIO NY</div>
         <div class="channel" data-url="https://discofunk.streamingmedia.it/usa">DISCO FUNKY</div>
         <div class="channel" data-url="https://stream-156.zeno.fm/2k1cu1qrquhvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIyazFjdTFxcnF1aHZ2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6IldrcDhRS1pRUmVlc3B4MWRoWERFNlEiLCJpYXQiOjE3MzUxNTE1OTMsImV4cCI6MTczNTE1MTY1M30.Jm-8BLIkagge1arp_S-Yk3ImDlfWM63XqucL7BVvSh0.6yEfSbfuBo9uhpvoBPLKBk0">The Lounge Channel</div>
+        <div class="channel" data-url="https://0n-2010s.radionetz.de/0n-2010s.aac">Radionetz - pop</div>
+        <div class="channel" data-url="https://ais-sa2.cdnstream1.com/2447_96.aac">Funky Corner</div>
+        <div class="channel" data-url="https://0n-70s.radionetz.de/0n-70s.mp3">Disco on radio - 70</div>
+        <div class="channel" data-url="http://secure.live-streams.nl/flac.flac">Intense Radio - House</div>
+        <div class="channel" data-url="https://stream.laut.fm/poploungecafe">POP LOUNGE CAFE</div>
+        <div class="channel" data-url="http://c32.radioboss.fm:8139/stream">Nostalgie - New York - 70 80</div>
+        <div class="channel" data-url="https://broadcast.miami/proxy/indiedisco?mp=/stream/">Radio Indie Disco Miami</div>
+        <div class="channel" data-url="https://broadcast.miami/proxy/salsoul?mp=/stream/">Salsoul - Disco Miami</div>
+        <div class="channel" data-url="http://edge.radiomontecarlo.net/rmcweb025">RMC Disco Funky</div>
+        <div class="channel" data-url="https://mediagw.e-tiger.net/stream/zc13">COOLFM Jazz</div>
+        <div class="channel" data-url="http://jazzblackmusic.ice.infomaniak.ch/jazzblackmusic-high.mp3">Jazz Radio Black Music</div>
+        <div class="channel" data-url="http://londonsoulradio.out.airtime.pro:8000/londonsoulradio_a">The Soul Of London</div>
+        <div class="channel" data-url="http://live.medi1.com/Jazz">Playlist Jazz</div>
+        <div class="channel" data-url="https://eu9.fastcast4u.com/proxy/musicart?mp=/1">Music Art Club - Lounge</div>
+        <div class="channel" data-url="http://dancewave.online/dance.mp3">Dance Wave!</div>
+        <div class="channel" data-url="http://listen.radioking.com/radio/285742/stream/331753">La Patate Douce Radio - Electro House Disco Funk Africa</div>
+        <div class="channel" data-url="https://listen.reyfm.de/houseparty_192kbps.mp3">REYFM - House</div>
+        <div class="channel" data-url="http://traxx001.ice.infomaniak.ch/traxx001-low.mp3">Traxx FM</div>
+        <div class="channel" data-url="https://0n-indie.radionetz.de/0n-indie.mp3">Indie on Radio</div>
+        <div class="channel" data-url="https://oxygenmusic.hu:2443/hls/oxygenmusic.m3u8">OXYGEN MUSIC - MIX</div>
+        <div class="channel" data-url="https://unlimited3-cl.dps.live/beethovenfm/gotardis/audio/now/livestream1.m3u8">Beethoven</div>
+        <div class="channel" data-url="https://listen.radioking.com/radio/500896/stream/558190">Bob Marley</div>
+        <div class="channel" data-url="https://streaming.radiostreamlive.com/radiosymphony_devices">Raio Synphony</div>
+        <div class="channel" data-url="https://stream.zeno.fm/zr736mbgqrhvv">Radio Lebanon House</div>
+        <div class="channel" data-url="https://webcast.deeredradio.com:8420/stream">Radio RedZone house</div>
+        <div class="channel" data-url="https://onair7.xdevel.com/proxy/xautocloud_vovi_2030?mp=/1/">Radio Romeo And Juliet Lounge</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/uber/easydianakrall/icecast.audio">Diana Krall</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/fleetwoodmachits/icecast.audio">Fleetwood Mac - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/ericclaptonhits/icecast.audio">Eric Clapton - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/direstraitshits/icecast.audio">Dire Straits - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/chichits/icecast.audio">Chic - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/carpentershits/icecast.audio">Carpenters - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/barrywhitehits/icecast.audio">Barry White - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/marvingayehits/icecast.audio">Marvin Gaye - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/davidbowiehits/icecast.audio">David Bowie - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/franksinatrahits/icecast.audio">Frank Sinatra - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/jamestaylorhits/icecast.audio">James Taylor - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/natkingcolehits/icecast.audio">Nat King Cole - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/philcollinshits/icecast.audio">Phil Collins - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/pinkfloydhits/icecast.audio">Pink Floyd - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/steelydanhits/icecast.audio">Steely Dan - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/georgemichaelhits/icecast.audio">George Michael - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/eltonjohnhits/icecast.audio">Elton John - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/eagleshits/icecast.audio">Eagles - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/genesishits/icecast.audio">Genesis - non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/adamlambert/icecast.audio">Avicii non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/10cc/icecast.audio">10cc non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/alisonmoyet/icecast.audio">Alison Moyet non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/gregoryporter/icecast.audio">Gregory Porter Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/depechemode/icecast.audio">Depeche Mode Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/donnasummer/icecast.audio">Donna Summer Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/algreen/icecast.audio">Al Green Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/earthwindandfire/icecast.audio">Earth Wind & Fire Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/blacksabbath/icecast.audio">Black Sabbath Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/deeppurple/icecast.audio">Deep Purple Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/joesatriani/icecast.audio">Joe Satriani Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/simpleminds/icecast.audio">Simple Minds Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/stonetemplepilots/icecast.audio">Stone Temple Pilots Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/u2/icecast.audio">U2 Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/zztop/icecast.audio">ZZ TOP	Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/lennon/icecast.audio">John Lennon Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/joebonamassa/icecast.audio">Joe Bonamassa Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/georgebenson/icecast.audio">George Benson Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/herbiehancock/icecast.audio">Herbie Hancock	Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/rem/icecast.audio">R.E.M. Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/thecure/icecast.audio">The Cure Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/thesmiths/icecast.audio">Smiths</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/onj/icecast.audio">Olivia Newton John  Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/spandauballet/icecast.audio">Spandau Ballet Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/tearsforfears/icecast.audio">Tears For Fears  Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/thecars/icecast.audio">Cars  Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/police/icecast.audio">The Police  Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/chicago/icecast.audio">Chicago  Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/chrisrea/icecast.audio">Chris Rea   Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/hueylewis/icecast.audio">Huey Lewis & The News   Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/santana/icecast.audio">Santana  Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/supertramp/icecast.audio">Supertramp  Non stop</div>
+        <div class="channel" data-url="https://streaming.exclusive.radio/er-app/sade/icecast.audio">Sade  Non stop</div>
         <div class="channel" data-url="http://patbuweb.com/iptv/e2liste/startend.avi">=== Canali RAI ===</div>
         <div class="channel" data-url="https://dash2.antik.sk/live/test_rai_uno_tizen/playlist.m3u8">Rai 1</div>
         <div class="channel" data-url="http://mediapolis.rai.it/relinker/relinkerServlet.htm?cont=308718&output=7&forceUserAgent=raiplayappletv">Rai 2</div>
@@ -315,31 +473,197 @@
         <div class="channel" data-url=""></div>
         <div class="channel" data-url=""></div>
         <div class="channel" data-url=""></div>
-      <!-- ... -->
-    </div>
-    <div class="main-container">
-      <div class="controls-container">
-        <div class="media-controls">
-          <button id="voice-search">🎤</button>
-          <button id="media-play">Play</button>
-          <button id="media-stop">Stop</button>
-        </div>
-        <div class="search-box">
-          <input id="search-input" type="text" placeholder="Cerca un canale...">
-          <button id="reset-search">Canc</button>
-        </div>
+</div>
+
+<div class="main-container">
+    <div class="controls-container">
+      <div class="media-controls">
+        <button id="voice-search" class="voice-search-button">🎤</button>
+        <button id="media-play">Play</button>
+        <button id="media-stop">Stop</button>
       </div>
-      <div class="player-container">
-        <video id="video-player" controls></video>
-        <audio id="audio-player" controls></audio>
+      <div class="search-box">
+        <input type="text" id="search-input" class="search-input" placeholder="Cerca un canale..." />
+        <button id="reset-search" class="reset-search-button">Canc</button>
       </div>
     </div>
-  </div>
+    <div class="player-container">
+      <video id="video-player" controls></video>
+      <audio id="audio-player" controls></audio>
+    </div>
+</div>
 
-  <div class="footer-text">
-    Acus Studio 2025 - Riproduzione vietata - © All rights reserved.
-  </div>
+<!-- Testo sollevato del 12% -->
+<div class="footer-text">
+  Acus Studio 2025 - Riproduzione vietata - © All rights reserved.
+</div>
 
-  <script src="main.js"></script>
+<style>
+  .footer-text {
+    position: fixed;
+    bottom: 8%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0); /* Sfondo semitrasparente */
+    padding: 10px;
+    z-index: 999;
+  }
+</style>
+
+
+  <script>
+    const channelList = document.getElementById('channel-list');
+    const channels = Array.from(channelList.getElementsByClassName('channel'));
+    const videoPlayer = document.getElementById('video-player');
+    const audioPlayer = document.getElementById('audio-player');
+    const mediaPlayButton = document.getElementById('media-play');
+    const mediaStopButton = document.getElementById('media-stop');
+    const searchInput = document.getElementById('search-input');
+    const resetButton = document.getElementById('reset-search');
+    const voiceSearchButton = document.getElementById('voice-search');
+
+    let currentHls = null;
+
+    function stopCurrentStream() {
+      if (currentHls) {
+        currentHls.destroy();
+        currentHls = null;
+      }
+      videoPlayer.pause();
+      videoPlayer.src = "";
+      audioPlayer.pause();
+      audioPlayer.src = "";
+    }
+
+    channels.forEach(channel => {
+      channel.addEventListener('click', function() {
+        channels.forEach(ch => ch.classList.remove('active'));
+        this.classList.add('active');
+        const url = this.getAttribute('data-url');
+        if (!url) {
+          console.error('Nessun URL trovato per il canale selezionato.');
+          return;
+        }
+
+        stopCurrentStream();
+
+        const lowerUrl = url.toLowerCase();
+        const isAudio = lowerUrl.endsWith('.mp3') || lowerUrl.endsWith('.nsv') || 
+                        lowerUrl.endsWith('.aac') || lowerUrl.endsWith('.flac') || lowerUrl.endsWith('.ogg') || url === "http://live.powerhitz.com/70s?aw_0_req.gdpr=true" || url === "https://4c4b867c89244861ac216426883d1ad0.msvdn.net/webradio/deejayonelove/playlist.m3u8";
+
+        if (isAudio) {
+          audioPlayer.src = url;
+          audioPlayer.load();
+          audioPlayer.play().catch(error => console.error('Errore nella riproduzione audio:', error));
+          videoPlayer.style.display = 'none';
+          audioPlayer.style.display = 'block';
+          audioPlayer.style.height = '8px';  // Altezza ridotta del player audio dell'80%
+        } else {
+          if (lowerUrl.includes("relinkerservlet") || lowerUrl.includes(".m3u8")) {
+            if (Hls.isSupported()) {
+              currentHls = new Hls();
+              currentHls.loadSource(url);
+              currentHls.attachMedia(videoPlayer);
+              currentHls.on(Hls.Events.MANIFEST_PARSED, () => videoPlayer.play());
+              currentHls.on(Hls.Events.ERROR, (event, data) => {
+                console.error('Errore HLS:', data);
+                if (data.fatal) {
+                  switch (data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                      console.log('Errore di rete, tentativo di recupero...');
+                      currentHls.startLoad();
+                      break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                      console.log('Errore media, tentativo di recupero...');
+                      currentHls.recoverMediaError();
+                      break;
+                    default:
+                      currentHls.destroy();
+                      break;
+                  }
+                }
+              });
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+              videoPlayer.src = url;
+              videoPlayer.addEventListener('loadedmetadata', () => videoPlayer.play());
+            } else {
+              videoPlayer.src = url;
+              videoPlayer.play();
+            }
+          } else {
+            videoPlayer.src = url;
+            videoPlayer.play();
+          }
+          videoPlayer.classList.add('small-player'); // Aggiungi classe per dimensioni ridotte
+          videoPlayer.style.display = 'block';
+          audioPlayer.style.display = 'none';
+        }
+      });
+    });
+
+    mediaPlayButton.addEventListener('click', () => {
+      if (audioPlayer.style.display === 'block' && audioPlayer.src) {
+        audioPlayer.play();
+      } else if (videoPlayer.style.display === 'block' && videoPlayer.src) {
+        videoPlayer.play();
+      }
+    });
+
+    mediaStopButton.addEventListener('click', () => {
+      if (audioPlayer.style.display === 'block') {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+      } else if (videoPlayer.style.display === 'block') {
+        videoPlayer.pause();
+        videoPlayer.currentTime = 0;
+      }
+    });
+
+    searchInput.addEventListener('input', () => {
+      const searchTerm = searchInput.value.toLowerCase();
+      channels.forEach(channel => {
+        const channelText = channel.textContent.toLowerCase();
+        channel.style.display = channelText.includes(searchTerm) ? '' : 'none';
+      });
+    });
+
+    resetButton.addEventListener('click', () => {
+      searchInput.value = '';
+      channels.forEach(channel => channel.style.display = '');
+    });
+
+    voiceSearchButton.addEventListener('click', () => {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'it-IT';
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        const speechResult = event.results[0][0].transcript.toLowerCase();
+        searchInput.value = speechResult;
+        const searchTerm = speechResult;
+        channels.forEach(channel => {
+          const channelText = channel.textContent.toLowerCase();
+          channel.style.display = channelText.includes(searchTerm) ? '' : 'none';
+        });
+      };
+
+      recognition.onerror = function(event) {
+        console.error('Errore nel riconoscimento vocale:', event.error);
+      };
+    });
+
+    // Aumenta la sensibilità del microfono
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'it-IT';
+      recognition.maxAlternatives = 1;
+    }
+  </script>
 </body>
 </html>
